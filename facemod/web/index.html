@@ -3,211 +3,339 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MDickie FaceMod</title>
+<title>FaceMod</title>
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{
-  --bg:#141414;--panel:#1d1d1d;--panel2:#252525;--line:#333;--text:#eee;--dim:#9a9a9a;
-  --accent:#f5b400;--accent2:#ff6a3d;--good:#4cc36b;--bad:#e5484d;
+  --bg:#0a0a0a; --panel:#111; --panel2:#151515; --field:#0d0d0d; --line:#333; --line2:#222;
+  --text:#e0e0e0; --head:#fff; --dim:#888; --dimmer:#666;
+  --accent:#A37C43; --accent-soft:rgba(163,124,67,.3); --accent-glow:rgba(163,124,67,.15);
+  --bad:#c4574f;
+  --font-head:'Space Mono',ui-monospace,Consolas,monospace;
+  --font-body:'Inter',system-ui,'Segoe UI',sans-serif;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Segoe UI,sans-serif}
-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:#101010;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:20px;letter-spacing:.5px;font-weight:800}
-header h1 span{color:var(--accent)}
-.games{display:flex;gap:8px;flex-wrap:wrap}
-.game{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);cursor:pointer;color:var(--text)}
-.game.on{background:var(--accent);color:#111;border-color:var(--accent);font-weight:700}
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes spin{to{--angle:360deg}}
+@keyframes shimmer{0%,100%{background-position:0% center}50%{background-position:200% center}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.55 var(--font-body);-webkit-font-smoothing:antialiased;overflow:hidden}
+::selection{background:var(--accent);color:#111}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#262626;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#3a3a3a}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---- shell: rail + content ---- */
+.app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;height:100vh}
+.brand{grid-row:1/3;border-right:1px solid var(--line);display:flex;flex-direction:column;background:#0b0b0b}
+.brand .logo{padding:28px 24px 26px;border-bottom:1px solid var(--line)}
+.brand .logo b{display:block;font:400 1.15rem var(--font-head);letter-spacing:.42em;color:var(--head)}
+.brand .logo span{display:block;margin-top:6px;font:400 .62rem var(--font-head);letter-spacing:.22em;color:var(--accent);text-transform:uppercase}
+nav{display:flex;flex-direction:column;padding:16px 0}
+nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 24px;
+  font:400 .78rem var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);position:relative;transition:color .3s}
+nav button::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;background:var(--accent);transform:scaleY(0);transition:transform .3s}
+nav button .k{font-size:.62rem;color:var(--dimmer);letter-spacing:.1em}
+nav button:hover{color:var(--text)}
+nav button.on{color:var(--head)}
+nav button.on::before{transform:scaleY(1)}
+nav button.on .k{color:var(--accent)}
+.rail-foot{margin-top:auto;padding:18px 24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.rail-foot .meta{font:400 .6rem var(--font-head);letter-spacing:.18em;color:var(--dimmer);text-transform:uppercase}
+
+header{display:flex;align-items:center;gap:14px;padding:14px 28px;border-bottom:1px solid var(--line);background:rgba(10,10,10,.85);backdrop-filter:blur(10px)}
+.games{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--line)}
+.game{all:unset;cursor:pointer;padding:8px 16px;font:400 .7rem var(--font-head);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);border-right:1px solid var(--line);transition:color .3s,background .3s}
+.game:last-child{border-right:0}
+.game:hover{color:var(--text)}
+.game.on{color:#111;background:var(--accent)}
 .spacer{flex:1}
-nav{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);background:#121212}
-nav button{background:none;border:0;color:var(--dim);padding:12px 16px;cursor:pointer;font-size:14px;border-bottom:2px solid transparent}
-nav button.on{color:var(--text);border-color:var(--accent)}
-main{padding:20px;max-width:1500px;margin:0 auto}
-.cols{display:grid;grid-template-columns:300px 1fr 420px;gap:16px;align-items:start}
-@media(max-width:1200px){.cols{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
-.card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--dim)}
-input[type=text],input[type=search],textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:8px}
-textarea{min-height:160px;font-family:inherit}
-button.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:8px 14px;cursor:pointer}
-button.btn:hover{border-color:#555}
-button.primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:700}
-button.danger{border-color:var(--bad);color:var(--bad)}
-button:disabled{opacity:.5;cursor:default}
-.list{max-height:62vh;overflow:auto;margin-top:8px;border:1px solid var(--line);border-radius:6px}
-.row{display:flex;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid #2a2a2a;cursor:pointer}
-.row:hover{background:#262626}
-.row.on{background:#3a3010}
-.row .n{color:var(--dim);width:32px;text-align:right;font-variant-numeric:tabular-nums}
+
+main{overflow:auto;padding:28px 28px 40px}
+main section{max-width:1440px;margin:0 auto;animation:rise .45s ease-out}
+.page-title{display:flex;align-items:baseline;gap:18px;margin-bottom:22px}
+.page-title h1{font:400 1.6rem var(--font-head);letter-spacing:.12em;text-transform:uppercase;
+  background:linear-gradient(90deg,#fff 0%,var(--accent) 50%,#fff 100%);background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s ease-in-out infinite}
+.page-title p{color:var(--dim);font-size:.9rem}
+
+/* ---- panels ---- */
+.cols{display:grid;grid-template-columns:300px minmax(0,1fr) 400px;gap:20px;align-items:start}
+@media(max-width:1250px){.cols{grid-template-columns:1fr 1fr}.cols>:first-child{grid-column:1/-1}#tab-faces .cols>:first-child .list{max-height:280px;min-height:0}}
+@media(max-width:860px){.cols{grid-template-columns:1fr}.app{grid-template-columns:1fr}.brand{display:none}}
+.card{background:var(--panel);border:1px solid var(--line);padding:20px;position:relative;overflow:hidden;transition:border-color .4s,box-shadow .4s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .4s}
+.card:hover{border-color:var(--accent-soft);box-shadow:0 8px 32px rgba(163,124,67,.08)}
+.card:hover::before{opacity:1}
+.card+.card{margin-top:20px}
+.card h2{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;font:400 .7rem var(--font-head);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.card h2 i{font-style:normal;color:var(--head);letter-spacing:.14em}
+.card h2 small{margin-left:auto;color:var(--dimmer);font-size:.6rem;letter-spacing:.12em}
+
+/* ---- fields ---- */
+input[type=text],input[type=search],textarea,select{width:100%;background:var(--field);border:1px solid var(--line);color:var(--head);border-radius:2px;padding:9px 11px;font:inherit;outline:none;transition:border-color .3s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:#555}
+textarea{min-height:180px;resize:vertical}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+select option{background:#111}
+.field{margin:14px 0}
+.field>label{display:flex;justify-content:space-between;margin-bottom:6px;font:400 .62rem var(--font-head);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.field>label span{color:var(--accent);letter-spacing:.05em}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-6px;background:var(--accent);border:2px solid #111;box-shadow:0 0 0 1px var(--accent);transform:rotate(45deg)}
+input[type=range]:hover::-webkit-slider-thumb{box-shadow:0 0 0 1px var(--accent),0 0 12px rgba(163,124,67,.6)}
+.check{display:flex;gap:10px;align-items:center;margin:8px 0;color:var(--text);cursor:pointer;font-size:.88rem}
+.check input{appearance:none;width:14px;height:14px;border:1px solid var(--line);background:var(--field);display:grid;place-content:center;cursor:pointer;flex:none}
+.check input:checked{border-color:var(--accent)}
+.check input:checked::after{content:'';width:6px;height:6px;background:var(--accent)}
+.group{border-top:1px solid var(--line2);margin-top:16px;padding-top:4px}
+.group-label{display:block;margin-top:12px;font:400 .58rem var(--font-head);letter-spacing:.22em;text-transform:uppercase;color:var(--dimmer)}
+
+/* ---- buttons ---- */
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 14px;border:1px solid var(--line);
+  font:400 .66rem var(--font-head);letter-spacing:.16em;text-transform:uppercase;color:var(--text);transition:color .3s,border-color .3s,background .3s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#111}
+.btn.primary:hover{background:#b98f52;color:#111}
+.btn.danger{border-color:rgba(196,87,79,.5);color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad);background:rgba(196,87,79,.08)}
+.btn:disabled,.btn[disabled]{opacity:.4;pointer-events:none}
+.lux{display:block;width:100%;margin-top:18px;padding:2px;border:0;cursor:pointer;
+  background:conic-gradient(from var(--angle),var(--line),var(--accent),#fff,var(--accent),var(--line));animation:spin 4s linear infinite;
+  box-shadow:0 4px 24px var(--accent-glow);transition:box-shadow .4s,transform .4s}
+.lux span{display:block;background:#111;padding:15px 10px;font:400 .82rem var(--font-head);letter-spacing:.22em;text-transform:uppercase;color:var(--head);box-shadow:inset 0 0 20px rgba(0,0,0,.5);transition:color .3s}
+.lux:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(163,124,67,.3)}
+.lux:hover span{color:var(--accent)}
+.lux:disabled{animation:none;background:var(--line);box-shadow:none;transform:none;cursor:default}
+.lux:disabled span{color:var(--dimmer)}
+
+/* ---- lists ---- */
+.list{max-height:calc(100vh - 290px);min-height:200px;overflow:auto;margin-top:10px;border:1px solid var(--line2)}
+.row{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #1a1a1a;cursor:pointer;transition:background .2s}
+.row:hover{background:#161616}
+.row.on{background:#16130d;box-shadow:inset 2px 0 0 var(--accent)}
+.row .n{font:400 .66rem var(--font-head);color:var(--dimmer);width:28px;text-align:right}
+.row.on .n{color:var(--accent)}
 .row .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{font-size:11px;padding:1px 6px;border-radius:999px;background:#333;color:var(--dim)}
-.badge.mod{background:var(--good);color:#111}
-.drop{border:2px dashed #444;border-radius:10px;padding:22px;text-align:center;color:var(--dim);cursor:pointer}
-.drop.over{border-color:var(--accent);color:var(--text)}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.thumb{position:relative;width:96px}
-.thumb img{width:96px;height:120px;object-fit:cover;border-radius:6px;border:2px solid transparent}
-.thumb.used img{border-color:var(--accent)}
-.thumb .y{font-size:11px;color:var(--dim);text-align:center}
-.thumb .x{position:absolute;top:2px;right:4px;color:#fff;text-shadow:0 0 3px #000}
-.preview{background:repeating-conic-gradient(#2a2a2a 0 25%,#222 0 50%) 50%/20px 20px;border-radius:10px;min-height:340px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.preview img{max-width:100%;image-rendering:auto}
-.field{margin:10px 0}
-.field label{display:flex;justify-content:space-between;color:var(--dim);font-size:12px;margin-bottom:4px}
-input[type=range]{width:100%;accent-color:var(--accent)}
-.check{display:flex;gap:8px;align-items:center;margin:6px 0;color:var(--text)}
-.check input{accent-color:var(--accent)}
-.pickrow{display:flex;gap:8px;align-items:center}
-.pickrow img{width:56px;height:64px;object-fit:contain;background:#2a2a2a;border-radius:6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:60vh;overflow:auto;padding:4px}
-.grid div{background:#262626;border-radius:6px;padding:4px;text-align:center;cursor:pointer;border:2px solid transparent;font-size:11px;color:var(--dim)}
+.badge{font:400 .56rem var(--font-head);letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);color:#777;flex:none}
+.badge.mod{border-color:var(--accent-soft);color:var(--accent)}
+
+/* ---- photos ---- */
+.drop{border:1px dashed #3a3a3a;padding:26px 18px;text-align:center;cursor:pointer;transition:border-color .3s,background .3s}
+.drop b{display:block;font:400 .74rem var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--head);margin-bottom:6px}
+.drop:hover,.drop.over{border-color:var(--accent);background:#14110c}
+.path{display:flex;gap:8px;margin-top:10px}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.thumb{position:relative;width:92px}
+.thumb img{width:92px;height:116px;object-fit:cover;display:block;border:1px solid var(--line);filter:grayscale(.35);transition:filter .3s,border-color .3s}
+.thumb:hover img{filter:none}
+.thumb.used img{border-color:var(--accent);filter:none;box-shadow:0 0 0 1px var(--accent)}
+.thumb .y{margin-top:5px;font:400 .56rem var(--font-head);letter-spacing:.08em;color:var(--dimmer);text-align:center;text-transform:uppercase}
+.thumb.used .y{color:var(--accent)}
+.thumb .x{position:absolute;top:3px;right:3px;width:18px;height:18px;display:grid;place-content:center;background:rgba(0,0,0,.7);color:#ccc;font-size:10px;cursor:pointer;opacity:0;transition:opacity .2s}
+.thumb:hover .x{opacity:1}
+
+/* ---- preview ---- */
+.stage{position:relative;padding:2px;background:conic-gradient(from var(--angle),var(--line),var(--accent),var(--line));animation:spin 8s linear infinite}
+.preview{min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(130% 90% at 25% 0%,rgba(163,124,67,.22),transparent 55%),linear-gradient(165deg,#16130d 0%,#0b0b0b 70%)}
+.preview img{max-width:100%;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6))}
+.preview .empty{font:400 .68rem var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--dimmer)}
+.stage-meta{margin-top:10px;font:400 .6rem var(--font-head);letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);min-height:1em}
+
+/* ---- pickers ---- */
+.pickrow{display:flex;gap:12px;align-items:center}
+.pickrow img,.pickrow .ph{width:60px;height:68px;object-fit:contain;background:var(--field);border:1px solid var(--line);flex:none}
+.pickrow .lbl{font-size:.88rem;color:var(--head);margin-bottom:6px}
+.pickrow .btns{display:flex;gap:6px}
+.swatch{width:14px;height:14px;border:1px solid #555;display:inline-block;margin-left:auto}
+.notice{margin-top:16px;padding:14px 16px;background:#16130d;border:1px solid rgba(163,124,67,.35);border-left:2px solid var(--accent);color:#b9a68a;font-size:.8rem;line-height:1.65}
+.notice b{display:block;font:400 .6rem var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;max-height:64vh;overflow:auto;padding:4px}
+.grid div{background:var(--field);border:1px solid var(--line2);padding:6px 4px 4px;text-align:center;cursor:pointer;font:400 .6rem var(--font-head);color:var(--dimmer);transition:border-color .2s}
 .grid div:hover{border-color:#555}
-.grid div.on{border-color:var(--accent)}
-.grid img{width:100%;height:80px;object-fit:contain}
-.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20}
+.grid div.on{border-color:var(--accent);color:var(--accent)}
+.grid img{width:100%;height:84px;object-fit:contain}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:20}
 .modal.show{display:flex}
-.modal .card{width:min(900px,92vw)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--line);padding:10px 18px;border-radius:8px;display:none;z-index:30}
+.modal .card{width:min(960px,92vw);animation:rise .3s ease-out}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-head h2{margin:0}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16130d;border:1px solid rgba(163,124,67,.35);border-left:2px solid var(--accent);color:#e6d6bd;padding:12px 18px;display:none;z-index:30;font-size:.88rem;animation:rise .3s ease-out}
 .toast.show{display:block}
-.toast.err{border-color:var(--bad)}
-.busy{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:40;font-size:16px}
+.toast.err{background:#1a0f0e;border-color:rgba(196,87,79,.4);border-left-color:var(--bad);color:#e7b9b5}
+.busy{position:fixed;inset:0;background:rgba(10,10,10,.82);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:40}
 .busy.show{display:flex}
-.spin{width:28px;height:28px;border:3px solid #444;border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;margin-right:12px}
-@keyframes s{to{transform:rotate(360deg)}}
+.spin{width:44px;height:44px;border-radius:50%;background:conic-gradient(from var(--angle),transparent,var(--accent));animation:spin 1s linear infinite;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
+#busyMsg{font:400 .7rem var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--text)}
+
 table{width:100%;border-collapse:collapse}
-td,th{padding:5px 6px;border-bottom:1px solid #2a2a2a;text-align:left}
-th{color:var(--dim);font-weight:500;font-size:12px}
-td input{padding:5px 7px}
-.muted{color:var(--dim);font-size:12px}
-.hint{color:var(--dim);font-size:12px;margin-top:6px}
-.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.mods .card{display:flex;gap:10px;align-items:center}
-.mods img{width:70px;height:90px;object-fit:contain;background:#2a2a2a;border-radius:6px}
-.edits .e{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px}
-.strlist .row{cursor:pointer}
-.swatch{width:22px;height:22px;border-radius:4px;border:1px solid #555;display:inline-block;vertical-align:middle}
+td,th{padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:left}
+th{position:sticky;top:0;background:var(--panel);font:400 .6rem var(--font-head);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+td:first-child{font:400 .66rem var(--font-head);color:var(--dimmer);width:46px}
+td input{padding:6px 9px;background:transparent;border-color:transparent}
+td input:hover{border-color:var(--line2)}
+td input:focus{border-color:var(--accent);background:var(--field)}
+.muted{color:var(--dim);font-size:.8rem}
+.hint{color:var(--dimmer);font-size:.78rem;margin-top:10px;line-height:1.6}
+.bar{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.mods .card{display:flex;gap:14px;align-items:center;margin:0}
+.mods img{width:74px;height:94px;object-fit:contain;background:radial-gradient(circle at 50% 30%,rgba(163,124,67,.18),transparent 70%),var(--field);border:1px solid var(--line2)}
+.mods .nm{font:400 .9rem var(--font-head);color:var(--head);letter-spacing:.04em}
+.mods .muted{font:400 .58rem var(--font-head);letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);margin:4px 0 10px}
+.edits .e{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px}
+.strlist .nm{white-space:pre-wrap!important;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header>
-  <h1>MDickie <span>FaceMod</span></h1>
-  <div class="games" id="games"></div>
-  <div class="spacer"></div>
-  <button class="btn" id="addFolder">+ Game folder</button>
-  <button class="btn" id="launch">▶ Launch game</button>
-</header>
-<nav>
-  <button data-tab="faces" class="on">Faces</button>
-  <button data-tab="names">Names</button>
-  <button data-tab="text">Text</button>
-  <button data-tab="installed">Installed mods</button>
-</nav>
-<main>
+<div class="app">
+  <aside class="brand">
+    <div class="logo"><b>FACEMOD</b><span>for MDickie games</span></div>
+    <nav>
+      <button data-tab="faces" class="on"><span class="k">01</span>Faces</button>
+      <button data-tab="names"><span class="k">02</span>Names</button>
+      <button data-tab="text"><span class="k">03</span>Text</button>
+      <button data-tab="installed"><span class="k">04</span>Installed</button>
+    </nav>
+    <div class="rail-foot">
+      <button class="btn" id="addFolder">+ Game folder</button>
+      <span class="meta">Runs locally · no uploads</span>
+    </div>
+  </aside>
+
+  <header>
+    <div class="games" id="games"></div>
+    <div class="spacer"></div>
+    <button class="btn primary" id="launch">▶ Launch game</button>
+  </header>
+
+  <main>
   <!-- FACES -->
   <section id="tab-faces">
+    <div class="page-title"><h1>Faces</h1><p>Pick a character, drop in photos, put them in the game.</p></div>
     <div class="cols">
       <div class="card">
-        <h2>1 · Character</h2>
+        <h2>01 <i>Character</i></h2>
         <input type="search" id="charSearch" placeholder="Search characters…">
         <div class="list" id="charList"></div>
       </div>
       <div>
         <div class="card">
-          <h2>2 · Photos of your friend</h2>
-          <div class="drop" id="drop">Drop photos here or click to choose<br><span class="muted">Several angles works best — the game draws faces turned ~25° to the right, the app picks (or mirrors) the closest shot.</span></div>
+          <h2>02 <i>Photos</i><small>several angles work best</small></h2>
+          <div class="drop" id="drop"><b>Drop photos here</b><span class="muted">or click to choose. The games draw faces turned ~25° right; the closest shot is picked (or mirrored) automatically.</span></div>
           <input type="file" id="file" accept="image/*" multiple hidden>
-          <div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="photoPath" placeholder="…or paste a folder path, e.g. C:\Photos\Friend"><button class="btn" id="photoPathGo">Load</button></div>
+          <div class="path"><input type="text" id="photoPath" placeholder="…or paste a folder path, e.g. C:\Photos\Friend"><button class="btn" id="photoPathGo">Load</button></div>
           <div class="thumbs" id="thumbs"></div>
         </div>
-        <div class="card" style="margin-top:16px">
+        <div class="card">
           <h2>Preview</h2>
-          <div class="preview" id="preview"><span class="muted">Pick a character and add photos</span></div>
-          <div class="hint" id="previewInfo"></div>
+          <div class="stage"><div class="preview" id="preview"><span class="empty">Pick a character and add photos</span></div></div>
+          <div class="stage-meta" id="previewInfo"></div>
         </div>
       </div>
       <div class="card">
-        <h2>3 · Look &amp; install</h2>
-        <div class="field"><label>Name in game</label><input type="text" id="name" placeholder="Friend's name"></div>
+        <h2>03 <i>Look &amp; install</i></h2>
+        <div class="field"><label>Name in game</label><input type="text" id="name" placeholder="Their name"></div>
         <div class="field"><label>Base head shape</label>
-          <div class="pickrow"><img id="tplImg" alt=""><div style="flex:1"><div id="tplLabel">—</div><button class="btn" id="tplPick">Choose…</button></div></div>
+          <div class="pickrow"><img id="tplImg" alt=""><div><div class="lbl" id="tplLabel">—</div><div class="btns"><button class="btn" id="tplPick">Choose</button></div></div></div>
         </div>
         <div class="field"><label>Hairstyle</label>
-          <div class="pickrow"><img id="hairImg" alt=""><div style="flex:1"><div id="hairLabel">Keep character's hair</div><button class="btn" id="hairPick">Choose…</button> <button class="btn" id="hairKeep">Keep</button></div></div>
-          <div class="check"><input type="checkbox" id="hairAuto" checked><span>Colour hair from photo</span> <span class="swatch" id="hairSwatch"></span></div>
+          <div class="pickrow"><img id="hairImg" alt=""><div><div class="lbl" id="hairLabel">Keep character's hair</div><div class="btns"><button class="btn" id="hairPick">Choose</button><button class="btn" id="hairKeep">Keep</button></div></div></div>
+          <label class="check"><input type="checkbox" id="hairAuto" checked><span>Colour hair from photo</span><span class="swatch" id="hairSwatch"></span></label>
         </div>
         <div class="field"><label>Game beard</label>
           <select id="beard"><option value="0">None (photo's own beard)</option></select>
         </div>
-        <div class="field"><label>Blend edge <span id="v_feather"></span></label><input type="range" id="feather" min="0.02" max="0.2" step="0.01" value="0.08"></div>
-        <div class="field"><label>Face size inside head <span id="v_shrink"></span></label><input type="range" id="shrink" min="-0.05" max="0.2" step="0.01" value="0.07"></div>
-        <div class="field"><label>Forehead cut (hide fringe) <span id="v_forehead"></span></label><input type="range" id="forehead" min="0" max="0.8" step="0.05" value="0.3"></div>
-        <div class="field"><label>Brightness <span id="v_brightness"></span></label><input type="range" id="brightness" min="0.6" max="1.4" step="0.02" value="1"></div>
-        <div class="field"><label>Contrast <span id="v_contrast"></span></label><input type="range" id="contrast" min="0.6" max="1.6" step="0.02" value="1"></div>
-        <div class="field"><label>Saturation <span id="v_saturation"></span></label><input type="range" id="saturation" min="0" max="1.8" step="0.05" value="1"></div>
-        <div class="field"><label>Skin tone</label>
-          <select id="tone"><option value="photo">Use friend's skin tone (recolour head &amp; body)</option><option value="game">Keep the game character's skin tone</option></select></div>
-        <div class="check"><input type="checkbox" id="matchBody" checked><span>Match body skin to face</span></div>
-        <div class="check"><input type="checkbox" id="hideBrows" checked><span>Hide cartoon eyebrow overlay</span></div>
-        <div class="check"><input type="checkbox" id="mirror" checked><span>Allow mirrored photos</span></div>
-        <div class="field"><label>Quality (texture scale)</label>
-          <select id="scale"><option value="2">2× (smaller file)</option><option value="3" selected>3×</option><option value="4">4× (sharpest)</option></select></div>
-        <button class="btn primary" id="install" style="width:100%;padding:12px;margin-top:8px" disabled>Put them in the game</button>
-        <div class="hint">Writes the game files (originals are backed up in the game's <b>FaceMod/original</b> folder). If you already have a save in progress, use the game's "restore characters" option or start fresh to see roster changes.</div>
+
+        <div class="group"><span class="group-label">Blend</span>
+          <div class="field"><label>Blend edge <span id="v_feather"></span></label><input type="range" id="feather" min="0.02" max="0.2" step="0.01" value="0.08"></div>
+          <div class="field"><label>Face size inside head <span id="v_shrink"></span></label><input type="range" id="shrink" min="-0.05" max="0.2" step="0.01" value="0.07"></div>
+          <div class="field"><label>Forehead cut <span id="v_forehead"></span></label><input type="range" id="forehead" min="0" max="0.8" step="0.05" value="0.3"></div>
+        </div>
+        <div class="group"><span class="group-label">Colour</span>
+          <div class="field"><label>Brightness <span id="v_brightness"></span></label><input type="range" id="brightness" min="0.6" max="1.4" step="0.02" value="1"></div>
+          <div class="field"><label>Contrast <span id="v_contrast"></span></label><input type="range" id="contrast" min="0.6" max="1.6" step="0.02" value="1"></div>
+          <div class="field"><label>Saturation <span id="v_saturation"></span></label><input type="range" id="saturation" min="0" max="1.8" step="0.05" value="1"></div>
+          <div class="field"><label>Skin tone</label>
+            <select id="tone"><option value="photo">Their skin tone (recolour head &amp; body)</option><option value="game">Keep the character's skin tone</option></select></div>
+        </div>
+        <div class="group"><span class="group-label">Options</span>
+          <label class="check"><input type="checkbox" id="matchBody" checked><span>Match body skin to face</span></label>
+          <label class="check"><input type="checkbox" id="hideBrows" checked><span>Hide cartoon eyebrow overlay</span></label>
+          <label class="check"><input type="checkbox" id="mirror" checked><span>Allow mirrored photos</span></label>
+          <div class="field"><label>Texture quality</label>
+            <select id="scale"><option value="2">2× · smaller file</option><option value="3" selected>3×</option><option value="4">4× · sharpest</option></select></div>
+        </div>
+
+        <button class="lux" id="install" disabled><span>Put them in the game</span></button>
+        <div class="notice"><b>Heads up</b>Originals are backed up to the game's <code>FaceMod/original</code> folder. A save in progress keeps its own roster, so use the game's restore-characters option or start fresh.</div>
       </div>
     </div>
   </section>
 
   <!-- NAMES -->
   <section id="tab-names" hidden>
-    <div class="cols" style="grid-template-columns:1fr 360px">
+    <div class="page-title"><h1>Names</h1><p>Rename anyone in the roster.</p></div>
+    <div class="cols" style="grid-template-columns:minmax(0,1fr) 380px">
       <div class="card">
-        <h2>Character names</h2>
+        <h2>Roster</h2>
         <input type="search" id="nameSearch" placeholder="Filter…">
-        <div class="list" style="max-height:70vh"><table id="nameTable"><thead><tr><th>#</th><th>Name</th></tr></thead><tbody></tbody></table></div>
-        <div style="margin-top:10px;display:flex;gap:8px"><button class="btn primary" id="saveNames">Save names</button><span class="muted" id="nameDirty"></span></div>
+        <div class="list"><table id="nameTable"><thead><tr><th>#</th><th>Name</th></tr></thead><tbody></tbody></table></div>
+        <div class="bar"><button class="btn primary" id="saveNames">Save names</button><span class="muted" id="nameDirty"></span></div>
       </div>
       <div class="card">
         <h2>Bulk paste</h2>
-        <div class="muted">One name per line. They're written in order starting at character #</div>
+        <div class="muted">One name per line, written in order starting at character #</div>
         <div class="field"><input type="text" id="bulkStart" value="1"></div>
         <textarea id="bulk" placeholder="First Name&#10;Second Name&#10;…"></textarea>
-        <div style="margin-top:8px"><button class="btn" id="bulkApply">Fill table</button></div>
+        <div class="bar"><button class="btn" id="bulkApply">Fill table</button></div>
       </div>
     </div>
   </section>
 
   <!-- TEXT -->
   <section id="tab-text" hidden>
+    <div class="page-title"><h1>Text</h1><p>Rewrite dialogue, menus and move names.</p></div>
     <div class="cols" style="grid-template-columns:1fr 1fr">
       <div class="card">
-        <h2>Find text in the game</h2>
-        <input type="search" id="strSearch" placeholder="Search dialogue, menus, move names… e.g. Officer">
-        <div class="list strlist" id="strList" style="max-height:65vh"></div>
-        <div class="hint">Click a line to add it to your edits. Only text literals are editable — code names are protected so the game won't break.</div>
+        <h2>Find in game</h2>
+        <input type="search" id="strSearch" placeholder="Search… e.g. Officer">
+        <div class="list strlist" id="strList"></div>
+        <div class="hint">Click a line to add it to your edits. Only text is editable. Code names are protected so the game won't break.</div>
       </div>
       <div class="card">
-        <h2>Your text edits</h2>
+        <h2>Your edits</h2>
         <div class="edits" id="edits"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
+        <div class="bar">
           <button class="btn" id="addEdit">+ Add</button>
           <button class="btn primary" id="saveTexts">Save &amp; apply</button>
         </div>
-        <div class="hint">Exact = whole line must match. Turn it off to replace a word anywhere it appears (e.g. a gang or school name).</div>
+        <div class="hint">Exact = the whole line must match. Turn it off to replace a word everywhere (a gang or school name, say).</div>
       </div>
     </div>
   </section>
 
   <!-- INSTALLED -->
   <section id="tab-installed" hidden>
-    <div class="card" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span class="muted" id="folderLbl" style="flex:1"></span>
+    <div class="page-title"><h1>Installed</h1><p id="folderLbl"></p></div>
+    <div class="bar" style="margin:0 0 20px">
       <button class="btn" id="reapply">Re-apply all mods</button>
       <button class="btn danger" id="restore">Restore original game files</button>
     </div>
     <div class="mods" id="mods"></div>
   </section>
-</main>
+  </main>
+</div>
 
-<div class="modal" id="modal"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2 id="modalTitle"></h2><button class="btn" id="modalClose">Close</button></div><div class="grid" id="modalGrid"></div></div></div>
+<div class="modal" id="modal"><div class="card"><div class="modal-head"><h2 id="modalTitle"></h2><button class="btn" id="modalClose">Close</button></div><div class="grid" id="modalGrid"></div></div></div>
 <div class="toast" id="toast"></div>
 <div class="busy" id="busy"><div class="spin"></div><span id="busyMsg">Working…</span></div>
 
@@ -251,7 +379,7 @@ async function selectGame(key){
   try{ await refreshChars(); } catch(e){ toast(e.message,true); }
   busy();
   S.char=null; S.template=null; S.build=null; S.hair=null;
-  $('#preview').innerHTML='<span class="muted">Pick a character and add photos</span>';
+  $('#preview').innerHTML='<span class="empty">Pick a character and add photos</span>';
   updateHair(); renderChars(); fillBeards();
   S.edits = (S.texts||[]).map(e=>({...e})); renderEdits(); $('#strList').innerHTML='';
 }

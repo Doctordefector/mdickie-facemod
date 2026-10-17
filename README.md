@@ -81,4 +81,4 @@ Fan tool, not affiliated with MDickie. Don't redistribute game files. Only mod p
 
 ## Third-party
 
-Uses [MediaPipe](https://github.com/google-ai-edge/mediapipe) and its Face Landmarker model (Apache 2.0), OpenCV, NumPy, Pillow and pywebview.
+Uses [MediaPipe](https://github.com/google-ai-edge/mediapipe) and its Face Landmarker model (Apache 2.0), OpenCV, NumPy, Pillow and pywebview. Bundles the Space Mono and Inter fonts (SIL Open Font License).

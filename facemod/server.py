@@ -422,7 +422,7 @@ class Handler(BaseHTTPRequestHandler):
                 path = os.path.normpath(os.path.join(WEB, name))
                 if path.startswith(WEB) and os.path.isfile(path):
                     ctype = {"html": "text/html", "js": "text/javascript", "css": "text/css",
-                             "png": "image/png", "svg": "image/svg+xml"}.get(path.rsplit(".", 1)[-1],
+                             "png": "image/png", "svg": "image/svg+xml", "woff2": "font/woff2"}.get(path.rsplit(".", 1)[-1],
                                                                              "application/octet-stream")
                     with open(path, "rb") as f:
                         return self._send(200, f.read(), ctype + "; charset=utf-8")
