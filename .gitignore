@@ -1,0 +1,16 @@
+# game files are copyrighted - never commit them
+Hard Time/
+School Days/
+The You Testament 2D/
+Wrestling Revolution 2D/
+*.swf
+Characters.txt
+
+# build + runtime junk
+build/
+dist/
+__pycache__/
+*.pyc
+facemod_config.json
+facemod_uploads/
+.claude/
